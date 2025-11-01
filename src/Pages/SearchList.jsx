@@ -1,6 +1,8 @@
 /* eslint-disable no-undef */
 import { useState } from "react";
 import Papa from "papaparse";
+import * as XLSX from "xlsx";
+
 const SearchList = () => {
   const [csvData, setCsvData] = useState("");
   const [tableSearchSheetCount, setTableSearchSheetCount] = useState(0);
@@ -190,6 +192,51 @@ const SearchList = () => {
     clearData();
   };
 
+  const downloadSearchXlsx = async () => {
+    const data = await new Promise((resolve) => {
+      chrome.storage.local.get(["scrapedData"], (result) => {
+        resolve(result.scrapedData || []);
+      });
+    });
+
+    if (!data.length) {
+      console.error("No data available to convert to XLSX");
+      return;
+    }
+
+    // Convert 2D array (your scrapedData) to worksheet
+    const worksheet = XLSX.utils.aoa_to_sheet(data);
+
+    // Add hyperlinks to the URL column (column E) starting from row 2 (skip header)
+    for (let row = 2; row <= data.length; row++) {
+      const cellAddress = "E" + row;
+      const cell = worksheet[cellAddress];
+      if (cell && typeof cell.v === "string" && cell.v.startsWith("http")) {
+        worksheet[cellAddress].l = {
+          Target: worksheet[cellAddress].v,
+          Tooltip: "Open in browser"
+        };
+      }
+    }
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Leads");
+
+    // Write the workbook as a blob
+    const wbout = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([wbout], { type: "application/octet-stream" });
+
+    // Trigger download
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "linkedin_data.xlsx";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    clearData();
+  };
+
   const clearSearchData = () => {
     chrome.storage.local.remove("scrapedData", () => {
       setCsvData("");
@@ -252,7 +299,7 @@ const SearchList = () => {
           onClick={unperseSearchData}
           className="py-2 px-4 bg-purple-600 rounded-lg cursor-pointer text-white mt-3"
         >
-          Convert to CSV
+          Convert to CSV & XLSX
         </button>
         <button
           onClick={clearSearchData}
@@ -269,6 +316,12 @@ const SearchList = () => {
               className="py-2 px-4 bg-green-600 rounded-lg cursor-pointer text-white"
             >
               Download CSV
+            </button>
+            <button
+              onClick={downloadSearchXlsx}
+              className="py-2 px-4 bg-blue-600 rounded-lg cursor-pointer text-white"
+            >
+              Download XLSX
             </button>
           </div>
         )}

@@ -1,7 +1,7 @@
 This project is orginally created in [qtecsolution/Linkedin-Sales-Navigator-Scraper](https://github.com/qtecsolution/Linkedin-Sales-Navigator-Scraper) and I've modified it to my use case. Please check the orginal project for more information and support.
 
-### Version: 1.5.0
-### @tag Add Profile URL
+### Version: 1.6.0
+### @tag Download Output in xlsx 
 
 # Linkedin Sales Navigator Data Scraper Chrome Extension
 
