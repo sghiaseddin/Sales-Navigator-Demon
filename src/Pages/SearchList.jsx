@@ -104,7 +104,8 @@ const SearchList = () => {
         "FullName",
         "JobTitle",
         "Company",
-        "Country"
+        "Country",
+        "URL"
       ];
       // Extract rows
       const dataArray = rows.map((row) => {
@@ -120,11 +121,16 @@ const SearchList = () => {
         const countryCell = row?.querySelector('div span[data-anonymize="location"]');
         const country = countryCell ? countryCell.textContent.trim() : "Country not found";
 
+        const urlCell = row?.querySelector('div > a[data-view-name="search-results-lead-name"]');
+        const leadUrl = urlCell ? urlCell.href.trim() : '';
+        const cleanedUrl = 'https://linkedin.com' + leadUrl.substring(leadUrl.search('/sales/'));
+
         const rowData = [
           name,
           designation,
           company,
-          country
+          country,
+          cleanedUrl
         ];
 
         return rowData;
